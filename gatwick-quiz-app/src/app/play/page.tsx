@@ -1,8 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Award, Timer, XCircle, CheckCircle2 } from 'lucide-react';
+import { Award, Timer } from 'lucide-react';
 import { questions } from '@/lib/mockQuestions';
 import { saveScore, getLeaderboard } from '@/lib/supabase';
+import QuestionRenderer from '@/components/QuestionRenderer';
+import { Question } from '@/types/questions';
 
 const QUESTIONS = [
   {
