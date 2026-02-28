@@ -20,6 +20,7 @@ export default function PlayPage() {
   const [hasStarted, setHasStarted] = useState(false);
   const [hasAnswered, setHasAnswered] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [showCorrectAnswer, setShowCorrectAnswer] = useState(false); // NEW: separate state for revealing correct answer
   const [pendingPoints, setPendingPoints] = useState(0);
   const [finalScore, setFinalScore] = useState(0);
 
@@ -30,7 +31,7 @@ export default function PlayPage() {
     if (currentQuestion) {
       setTimeLeft(currentQuestion.timeLimit);
     }
-  }, [currentQuestionIndex]);
+  }, [currentQuestionIndex, currentQuestion]);
 
   // Handle the timer countdown
   useEffect(() => {
@@ -48,18 +49,21 @@ export default function PlayPage() {
     setIsTimerRunning(false);
 
     if (!hasAnswered && currentQuestion.type === 'multiple-choice') {
+      // User didn't answer in time
       setSelectedAnswer(null);
       setIsCorrect(false);
       setPendingPoints(0);
-      setShowFeedback(true);
-
-      setTimeout(() => {
-        moveToNextQuestion();
-      }, 2000);
-    } else if (currentQuestion.type !== 'multiple-choice') {
-      // For other question types, auto-complete with 0 points
-      handleQuestionComplete(false, 0);
     }
+
+    // NOW reveal the correct answer
+    setShowFeedback(true);
+    setShowCorrectAnswer(true);
+
+    // Move to next question after showing correct answer
+    setTimeout(() => {
+      setScore((s) => s + pendingPoints);
+      moveToNextQuestion();
+    }, 2000);
   };
 
   // For multiple-choice questions
@@ -71,7 +75,6 @@ export default function PlayPage() {
 
     const correct = option === currentQuestion.correct_answer;
     setIsCorrect(correct);
-    setIsCorrect(correct);
 
     if (correct) {
       const points = 100 + timeLeft * 5;
@@ -80,24 +83,16 @@ export default function PlayPage() {
       setPendingPoints(0);
     }
 
-    // Show feedback after answer
-    setShowFeedback(true);
-    setTimeout(() => {
-      setScore((s) => s + (correct ? 100 + timeLeft * 5 : 0));
-      moveToNextQuestion();
-    }, 2000);
+    // Show that user has selected, but DON'T reveal correct answer yet
+    // Timer continues running - correct answer revealed when timer hits 0
   };
 
   // For complex question types (connection, ordering, wordsearch)
   const handleQuestionComplete = (correct: boolean, points: number) => {
-    setIsTimerRunning(false);
+    setHasAnswered(true);
     setIsCorrect(correct);
     setPendingPoints(points);
-    setScore((s) => s + points);
-    
-    setTimeout(() => {
-      moveToNextQuestion();
-    }, 500);
+    // Timer continues running - feedback shown when timer hits 0
   };
 
   const moveToNextQuestion = async () => {
@@ -107,6 +102,7 @@ export default function PlayPage() {
     setIsCorrect(null);
     setHasAnswered(false);
     setShowFeedback(false);
+    setShowCorrectAnswer(false); // Reset correct answer visibility
     setPendingPoints(0);
 
     if (currentQuestionIndex < questions.length - 1) {
@@ -187,6 +183,7 @@ export default function PlayPage() {
           onComplete={handleQuestionComplete}
           selectedAnswer={selectedAnswer}
           showFeedback={showFeedback}
+          showCorrectAnswer={showCorrectAnswer}
           isCorrect={isCorrect}
           timeLeft={timeLeft}
           disabled={hasAnswered}

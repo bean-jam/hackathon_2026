@@ -15,7 +15,7 @@ export const questions: Question[] = [
     text: "Find the 4 related words",
     items: ["Boots", "Boss", "Trousers", "West", "Hamleys", "Sunglasses", "Lego", "Luton"],
     correctItems: ["Boots", "Boss", "Hamleys", "Lego"],
-    connectionHint: "Gatwick only has North and South terminals!",
+    connectionHint: "Gatwick's North Terminal shopping options",
     timeLimit: 30,
   },
   {
