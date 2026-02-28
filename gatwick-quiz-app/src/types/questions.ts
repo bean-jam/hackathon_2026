@@ -1,30 +1,46 @@
+// Database question format (what comes from Supabase)
 export type BaseQuestion = {
     id: string;
+    type: 'multiple-choice' | 'connection' | 'ordering' | 'wordsearch';
     text: string;
-    timeLimit: number;
+    time_limit: number;
+    data: Record<string, unknown>;
   };
   
-  export type MultipleChoiceQuestion = BaseQuestion & {
+  // App question formats (what components use)
+  export type MultipleChoiceQuestion = {
+    id: string;
     type: 'multiple-choice';
+    text: string;
+    timeLimit: number;
     options: string[];
     correct_answer: string;
   };
   
-  export type ConnectionQuestion = BaseQuestion & {
+  export type ConnectionQuestion = {
+    id: string;
     type: 'connection';
+    text: string;
+    timeLimit: number;
     items: string[];
     correctItems: string[];
     connectionHint: string;
   };
   
-  export type WordSearchQuestion = BaseQuestion & {
+  export type WordSearchQuestion = {
+    id: string;
     type: 'wordsearch';
+    text: string;
+    timeLimit: number;
     grid: string[][];
     validWords: string[];
   };
   
-  export type OrderingQuestion = BaseQuestion & {
+  export type OrderingQuestion = {
+    id: string;
     type: 'ordering';
+    text: string;
+    timeLimit: number;
     items: string[];
     correctOrder: string[];
   };
