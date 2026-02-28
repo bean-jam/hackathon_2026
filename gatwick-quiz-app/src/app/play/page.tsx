@@ -1,6 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Plane, Award, Timer, XCircle, CheckCircle2 } from 'lucide-react';
+import { Award, Timer, XCircle, CheckCircle2 } from 'lucide-react';
+import { questions } from '@/lib/mockQuestions';
+import { saveScore, getLeaderboard } from '@/lib/supabase';
 
 const QUESTIONS = [
   {
@@ -17,6 +19,18 @@ export default function PlayPage() {
   const [timeLeft, setTimeLeft] = useState(15);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [isQuizComplete, setIsQuizComplete] = useState(false);
+  const [leaderboard, setLeaderboard] = useState<{ username: string; score: number; created_at: string }[]>([]);
+  const [inputName, setInputName] = useState('');
+  const [username, setUsername] = useState('');
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(8);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [hasAnswered, setHasAnswered] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [pendingPoints, setPendingPoints] = useState(0);
+  const [finalScore, setFinalScore] = useState(0);
 
   const question = QUESTIONS[currentIdx];
 
@@ -29,7 +43,8 @@ export default function PlayPage() {
   const handleAnswer = (option: string) => {
     if (selectedAnswer) return; 
     setSelectedAnswer(option);
-    const correct = option === question.correct;
+
+    const correct = option === currentQuestion.correct_answer;
     setIsCorrect(correct);
     if (correct) setScore(s => s + 100);
 
