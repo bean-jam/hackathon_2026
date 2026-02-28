@@ -11,6 +11,7 @@ interface QuestionRendererProps {
   onComplete: (correct: boolean, points: number) => void;
   selectedAnswer: string | null;
   showFeedback: boolean;
+  showCorrectAnswer: boolean;
   isCorrect: boolean | null;
   timeLeft: number;
   disabled: boolean;
