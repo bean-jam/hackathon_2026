@@ -1,15 +1,15 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Award, Timer, XCircle, CheckCircle2 } from 'lucide-react';
-import { fetchLeaderboard, addScore } from '@/lib/leaderboard';
 import { questions } from '@/lib/mockQuestions';
+import { saveScore, getLeaderboard } from '@/lib/supabase';
 
 export default function PlayPage() {
   const [score, setScore] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [isQuizComplete, setIsQuizComplete] = useState(false);
-  const [leaderboard, setLeaderboard] = useState<{ id: string; username: string; score: number }[]>([]);
+  const [leaderboard, setLeaderboard] = useState<{ username: string; score: number; created_at: string }[]>([]);
   const [inputName, setInputName] = useState('');
   const [username, setUsername] = useState('');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -19,6 +19,7 @@ export default function PlayPage() {
   const [hasAnswered, setHasAnswered] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [pendingPoints, setPendingPoints] = useState(0);
+  const [finalScore, setFinalScore] = useState(0);
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -67,7 +68,9 @@ export default function PlayPage() {
     }
   };
 
-  const moveToNextQuestion = () => {
+  const moveToNextQuestion = async () => {
+    const newScore = score + pendingPoints;
+    
     setSelectedAnswer(null);
     setIsCorrect(null);
     setHasAnswered(false);
@@ -76,20 +79,33 @@ export default function PlayPage() {
     setTimeLeft(8);
 
     if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex((i) => i + 1);
-      setIsTimerRunning(true);
-    } else {
-      setIsQuizComplete(true);
-      setIsTimerRunning(false);
-      addScore(username, score);
-    }
-  };
-
-  useEffect(() => {
-    if (isQuizComplete) {
-      fetchLeaderboard().then((data) => setLeaderboard(data));
-    }
-  }, [isQuizComplete]);
+        setCurrentQuestionIndex((i) => i + 1);
+        setIsTimerRunning(true);
+      } else {
+        // Quiz complete - save to Supabase
+        setFinalScore(newScore);
+        setIsQuizComplete(true);
+        setIsTimerRunning(false);
+        
+        console.log('Quiz complete! Saving score...'); // Debug log
+        console.log('Username:', username);
+        console.log('Score:', newScore);
+        
+        try {
+          const result = await saveScore(username, newScore);
+          console.log('Save result:', result); // Debug log
+          
+          const data = await getLeaderboard(10);
+          console.log('Leaderboard data:', data); // Debug log
+          
+          if (data) {
+            setLeaderboard(data);
+          }
+        } catch (error) {
+          console.error('Error saving score:', error); // This will show Supabase errors
+        }
+      }
+    };
 
   const handleUsernameSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -119,26 +135,26 @@ export default function PlayPage() {
       {/* Username Input - Only show if quiz hasn't started */}
       {!hasStarted && (
         <div className="bg-white p-6 rounded-2xl shadow-sm">
-        <h2 className="text-xl font-bold mb-4 text-black text-center">
-          Enter your name to start:
-        </h2>
-        <form onSubmit={handleUsernameSubmit} className="flex flex-col gap-4">
-          <input
-            type="text"
-            value={inputName}
-            onChange={(e) => setInputName(e.target.value)}
-            className="w-full p-3 border-2 border-slate-200 rounded-xl text-black placeholder-gray-400 focus:border-gatwick-blue focus:outline-none"
-            placeholder="Enter your full name"
-          />
-          <button
-            type="submit"
-            disabled={!inputName.trim()}
-            className="w-full py-3 px-6 bg-black text-white font-bold text-lg rounded-xl shadow-md hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Start Quiz
-          </button>
-        </form>
-      </div>
+          <h2 className="text-xl font-bold mb-4 text-black text-center">
+            Enter your name to start:
+          </h2>
+          <form onSubmit={handleUsernameSubmit} className="flex flex-col gap-4">
+            <input
+              type="text"
+              value={inputName}
+              onChange={(e) => setInputName(e.target.value)}
+              className="w-full p-3 border-2 border-slate-200 rounded-xl text-black placeholder-gray-400 focus:border-gatwick-blue focus:outline-none"
+              placeholder="Enter your full name"
+            />
+            <button
+              type="submit"
+              disabled={!inputName.trim()}
+              className="w-full py-3 px-6 bg-black text-white font-bold text-lg rounded-xl shadow-md hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Start Quiz
+            </button>
+          </form>
+        </div>
       )}
 
       {/* Quiz - Only show after quiz has started */}
@@ -160,7 +176,6 @@ export default function PlayPage() {
                 <p className={`text-2xl font-bold mt-4 ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
                   {isCorrect ? `+${pendingPoints} PTS` : 'INCORRECT'}
                 </p>
-                {/* Show correct answer if user got it wrong */}
                 {!isCorrect && (
                   <p className="text-lg font-medium mt-2 text-black">
                     Correct answer: <span className="text-green-600 font-bold">{currentQuestion.correct_answer}</span>
@@ -172,22 +187,18 @@ export default function PlayPage() {
 
           <div className="grid grid-cols-1 gap-4 mb-6">
             {currentQuestion.options.map((option) => {
-              // Determine button styling based on feedback state
               const isSelected = selectedAnswer === option;
               const isCorrectAnswer = option === currentQuestion.correct_answer;
               
               let buttonStyle = 'bg-white text-black border-2 border-slate-100 hover:border-gatwick-orange';
               
               if (showFeedback) {
-                // When feedback is shown, highlight correct answer in green
                 if (isCorrectAnswer) {
                   buttonStyle = 'bg-green-500 text-white';
                 } else if (isSelected && !isCorrect) {
-                  // User's wrong selection in red
                   buttonStyle = 'bg-red-500 text-white';
                 }
               } else if (isSelected) {
-                // Before feedback, just show selection in orange
                 buttonStyle = 'bg-gatwick-orange text-white';
               }
 
@@ -214,16 +225,30 @@ export default function PlayPage() {
       {isQuizComplete && (
         <div className="bg-white p-8 rounded-3xl shadow-xl flex-grow flex flex-col justify-center items-center text-center gap-6 border-2 border-white">
           <h2 className="text-3xl font-black text-black leading-tight tracking-tight">
-            Leaderboard
+            🏆 Leaderboard
           </h2>
+          <p className="text-lg text-gray-600">
+            Your score: <span className="font-bold text-gatwick-orange">{finalScore} pts</span>
+          </p>
           <ul className="w-full">
             {leaderboard.map((entry, index) => (
-              <li key={entry.id} className="flex justify-between p-2 border-b">
-                <span>{index + 1}. {entry.username}</span>
-                <span>{entry.score} pts</span>
+              <li 
+                key={`${entry.username}-${entry.created_at}`} 
+                className={`flex justify-between p-3 border-b ${entry.username === username ? 'bg-gatwick-orange/10 rounded-lg' : ''}`}
+              >
+                <span className="font-medium text-black">
+                  {index + 1}. {entry.username}
+                </span>
+                <span className="font-bold text-black">{entry.score} pts</span>
               </li>
             ))}
           </ul>
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full py-3 px-6 bg-black text-white font-bold text-lg rounded-xl shadow-md hover:bg-blue-700 transition-all active:scale-95"
+          >
+            Play Again
+          </button>
         </div>
       )}
     </main>
