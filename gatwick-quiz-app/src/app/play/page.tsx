@@ -1,8 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Award, Timer, XCircle, CheckCircle2 } from 'lucide-react';
+import { Award, Timer } from 'lucide-react';
 import { questions } from '@/lib/mockQuestions';
 import { saveScore, getLeaderboard } from '@/lib/supabase';
+import QuestionRenderer from '@/components/QuestionRenderer';
+import { Question } from '@/types/questions';
 
 export default function PlayPage() {
   const [score, setScore] = useState(0);
@@ -23,6 +25,13 @@ export default function PlayPage() {
 
   const currentQuestion = questions[currentQuestionIndex];
 
+  // Set time limit based on question type
+  useEffect(() => {
+    if (currentQuestion) {
+      setTimeLeft(currentQuestion.timeLimit);
+    }
+  }, [currentQuestionIndex]);
+
   // Handle the timer countdown
   useEffect(() => {
     if (isTimerRunning && timeLeft > 0) {
@@ -31,33 +40,37 @@ export default function PlayPage() {
     }
 
     if (timeLeft === 0 && isTimerRunning) {
-      setIsTimerRunning(false);
-      
-      if (!hasAnswered) {
-        setSelectedAnswer(null);
-        setIsCorrect(false);
-        setPendingPoints(0);
-      }
-      
-      if (pendingPoints > 0) {
-        setScore((s) => s + pendingPoints);
-      }
-      
+      handleTimeOut();
+    }
+  }, [timeLeft, isTimerRunning]);
+
+  const handleTimeOut = () => {
+    setIsTimerRunning(false);
+
+    if (!hasAnswered && currentQuestion.type === 'multiple-choice') {
+      setSelectedAnswer(null);
+      setIsCorrect(false);
+      setPendingPoints(0);
       setShowFeedback(true);
 
       setTimeout(() => {
         moveToNextQuestion();
       }, 2000);
+    } else if (currentQuestion.type !== 'multiple-choice') {
+      // For other question types, auto-complete with 0 points
+      handleQuestionComplete(false, 0);
     }
-  }, [timeLeft, isTimerRunning, hasAnswered, pendingPoints]);
+  };
 
-  const handleAnswer = (option: string | null) => {
-    if (hasAnswered || !isTimerRunning) return;
+  // For multiple-choice questions
+  const handleAnswer = (option: string) => {
+    if (hasAnswered || !isTimerRunning || currentQuestion.type !== 'multiple-choice') return;
 
     setHasAnswered(true);
     setSelectedAnswer(option);
 
     const correct = option === currentQuestion.correct_answer;
+    setIsCorrect(correct);
     setIsCorrect(correct);
 
     if (correct) {
@@ -66,46 +79,55 @@ export default function PlayPage() {
     } else {
       setPendingPoints(0);
     }
+
+    // Show feedback after answer
+    setShowFeedback(true);
+    setTimeout(() => {
+      setScore((s) => s + (correct ? 100 + timeLeft * 5 : 0));
+      moveToNextQuestion();
+    }, 2000);
+  };
+
+  // For complex question types (connection, ordering, wordsearch)
+  const handleQuestionComplete = (correct: boolean, points: number) => {
+    setIsTimerRunning(false);
+    setIsCorrect(correct);
+    setPendingPoints(points);
+    setScore((s) => s + points);
+    
+    setTimeout(() => {
+      moveToNextQuestion();
+    }, 500);
   };
 
   const moveToNextQuestion = async () => {
     const newScore = score + pendingPoints;
-    
+
     setSelectedAnswer(null);
     setIsCorrect(null);
     setHasAnswered(false);
     setShowFeedback(false);
     setPendingPoints(0);
-    setTimeLeft(8);
 
     if (currentQuestionIndex < questions.length - 1) {
-        setCurrentQuestionIndex((i) => i + 1);
-        setIsTimerRunning(true);
-      } else {
-        // Quiz complete - save to Supabase
-        setFinalScore(newScore);
-        setIsQuizComplete(true);
-        setIsTimerRunning(false);
-        
-        console.log('Quiz complete! Saving score...'); // Debug log
-        console.log('Username:', username);
-        console.log('Score:', newScore);
-        
-        try {
-          const result = await saveScore(username, newScore);
-          console.log('Save result:', result); // Debug log
-          
-          const data = await getLeaderboard(10);
-          console.log('Leaderboard data:', data); // Debug log
-          
-          if (data) {
-            setLeaderboard(data);
-          }
-        } catch (error) {
-          console.error('Error saving score:', error); // This will show Supabase errors
-        }
+      setCurrentQuestionIndex((i) => i + 1);
+      setTimeLeft(questions[currentQuestionIndex + 1].timeLimit);
+      setIsTimerRunning(true);
+    } else {
+      // Quiz complete
+      setFinalScore(newScore);
+      setIsQuizComplete(true);
+      setIsTimerRunning(false);
+
+      try {
+        await saveScore(username, newScore);
+        const data = await getLeaderboard(10);
+        if (data) setLeaderboard(data);
+      } catch (error) {
+        console.error('Error saving score:', error);
       }
-    };
+    }
+  };
 
   const handleUsernameSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -113,7 +135,7 @@ export default function PlayPage() {
       setUsername(inputName.trim());
       setHasStarted(true);
       setIsTimerRunning(true);
-      setTimeLeft(8);
+      setTimeLeft(currentQuestion.timeLimit);
     }
   };
 
@@ -132,7 +154,7 @@ export default function PlayPage() {
         </div>
       </div>
 
-      {/* Username Input - Only show if quiz hasn't started */}
+      {/* Username Input */}
       {!hasStarted && (
         <div className="bg-white p-6 rounded-2xl shadow-sm">
           <h2 className="text-xl font-bold mb-4 text-black text-center">
@@ -157,68 +179,19 @@ export default function PlayPage() {
         </div>
       )}
 
-      {/* Quiz - Only show after quiz has started */}
+      {/* Quiz Content */}
       {hasStarted && !isQuizComplete && (
-        <>
-          <div className="bg-white p-8 rounded-3xl shadow-xl flex-grow flex flex-col justify-center items-center text-center gap-6 border-2 border-white relative overflow-hidden">
-            <h2 className="text-3xl font-black text-black leading-tight tracking-tight">
-              {currentQuestion.text}
-            </h2>
-
-            {/* Feedback Overlay - Only show when timer ends */}
-            {showFeedback && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm transition-all duration-300">
-                {isCorrect ? (
-                  <CheckCircle2 className="w-20 h-20 text-green-500 animate-bounce" />
-                ) : (
-                  <XCircle className="w-20 h-20 text-red-500" />
-                )}
-                <p className={`text-2xl font-bold mt-4 ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
-                  {isCorrect ? `+${pendingPoints} PTS` : 'INCORRECT'}
-                </p>
-                {!isCorrect && (
-                  <p className="text-lg font-medium mt-2 text-black">
-                    Correct answer: <span className="text-green-600 font-bold">{currentQuestion.correct_answer}</span>
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 mb-6">
-            {currentQuestion.options.map((option) => {
-              const isSelected = selectedAnswer === option;
-              const isCorrectAnswer = option === currentQuestion.correct_answer;
-              
-              let buttonStyle = 'bg-white text-black border-2 border-slate-100 hover:border-gatwick-orange';
-              
-              if (showFeedback) {
-                if (isCorrectAnswer) {
-                  buttonStyle = 'bg-green-500 text-white';
-                } else if (isSelected && !isCorrect) {
-                  buttonStyle = 'bg-red-500 text-white';
-                }
-              } else if (isSelected) {
-                buttonStyle = 'bg-gatwick-orange text-white';
-              }
-
-              return (
-                <button
-                  key={option}
-                  onClick={() => handleAnswer(option)}
-                  disabled={hasAnswered || showFeedback}
-                  className={`
-                    w-full py-5 px-6 rounded-2xl font-bold text-xl transition-all shadow-md active:scale-95
-                    ${buttonStyle}
-                    ${hasAnswered && !showFeedback && option !== selectedAnswer ? 'opacity-40 scale-95' : 'opacity-100'}
-                  `}
-                >
-                  {option}
-                </button>
-              );
-            })}
-          </div>
-        </>
+        <QuestionRenderer
+          question={currentQuestion}
+          onAnswer={handleAnswer}
+          onComplete={handleQuestionComplete}
+          selectedAnswer={selectedAnswer}
+          showFeedback={showFeedback}
+          isCorrect={isCorrect}
+          timeLeft={timeLeft}
+          disabled={hasAnswered}
+          pendingPoints={pendingPoints}
+        />
       )}
 
       {/* Leaderboard */}
@@ -232,8 +205,8 @@ export default function PlayPage() {
           </p>
           <ul className="w-full">
             {leaderboard.map((entry, index) => (
-              <li 
-                key={`${entry.username}-${entry.created_at}`} 
+              <li
+                key={`${entry.username}-${entry.created_at}`}
                 className={`flex justify-between p-3 border-b ${entry.username === username ? 'bg-gatwick-orange/10 rounded-lg' : ''}`}
               >
                 <span className="font-medium text-black">
