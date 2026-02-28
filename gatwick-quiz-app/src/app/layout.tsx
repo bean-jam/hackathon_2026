@@ -22,7 +22,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${openSans.className} ${montserrat.className}`} style={{ "--font-montserrat": montserrat.style.fontFamily } as React.CSSProperties}>
-      <body className={`${openSans.variable} font-sans`}>{children}</body>
+      <body className={`${openSans.className} font-sans`}>{children}</body>
     </html>
   );
 }
