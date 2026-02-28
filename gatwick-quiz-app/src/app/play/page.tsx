@@ -2,93 +2,116 @@
 import { useState, useEffect } from 'react';
 import { Plane, Award, Timer, XCircle, CheckCircle2 } from 'lucide-react';
 
-export default function PlayPage() {
-  const [score, setScore] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-
-  // Mock data - ARCHITECT will connect this to Supabase/FlightLabs later
-  const question = {
+const QUESTIONS = [
+  {
+    id: 1,
     text: "Which airline is operating flight EZY805 to Berlin?",
     options: ["EasyJet", "British Airways", "Emirates", "Ryanair"],
     correct: "EasyJet"
-  };
+  }
+];
+
+export default function PlayPage() {
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [score, setScore] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(15);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+
+  const question = QUESTIONS[currentIdx];
+
+  useEffect(() => {
+    if (timeLeft <= 0 || selectedAnswer) return;
+    const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft, selectedAnswer]);
 
   const handleAnswer = (option: string) => {
-    if (selectedAnswer) return; // Prevent double clicking
-    
+    if (selectedAnswer) return; 
     setSelectedAnswer(option);
     const correct = option === question.correct;
     setIsCorrect(correct);
-
     if (correct) setScore(s => s + 100);
 
-    // Reset for "next question" simulation after 2 seconds
     setTimeout(() => {
       setSelectedAnswer(null);
       setIsCorrect(null);
+      setTimeLeft(15);
     }, 2000);
   };
 
   return (
-    <main className="min-h-screen bg-gatwick-sky p-4 flex flex-col gap-4 max-w-md mx-auto font-sans">
+    <main className="min-h-screen bg-gatwick-viking p-4 flex flex-col gap-4 max-w-md mx-auto font-sans text-gatwick-congress-blue">
       
       {/* Header Stat Bar */}
-      <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm">
-        <div className="flex items-center gap-2 text-black font-bold text-lg">
-          <Award className="w-6 h-6 text-gatwick-orange" />
-          <span>{score} pts</span>
+      <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-md border-b-4 border-gatwick-congress-blue/10 font-mono">
+        <div className="flex items-center gap-2 font-black text-lg">
+          {/* !text-gatwick-teal forces it to ignore the globals.css blue */}
+          <Award className="w-6 h-6 !text-gatwick-teal" strokeWidth={3} />
+          <span className="!text-gatwick-teal">{score} pts</span>
         </div>
-        <div className="flex items-center gap-2 text-black font-medium">
-          <Timer className="w-6 h-6 text-gatwick-blue" />
-          <span>12s</span>
+        <div className="flex items-center gap-2 font-black text-lg">
+          <Timer className="w-6 h-6 !text-gatwick-teal" strokeWidth={3} />
+          <span className={`!text-gatwick-teal ${timeLeft < 5 ? 'animate-pulse !text-gatwick-orange' : ''}`}>
+            {timeLeft}s
+          </span>
         </div>
       </div>
 
       {/* Question Card */}
       <div className="bg-white p-8 rounded-3xl shadow-xl flex-grow flex flex-col justify-center items-center text-center gap-6 border-2 border-white relative overflow-hidden">
-        <div className="bg-gatwick-sky p-3 rounded-full">
-          <Plane className="text-gatwick-blue w-8 h-8 rotate-45" />
+        <div className="bg-gatwick-viking/10 p-4 rounded-full">
+          <Plane className="text-gatwick-congress-blue w-8 h-8 rotate-45" />
         </div>
         
-        {/* THE QUESTION TEXT - NOW SOLID BLACK */}
-        <h2 className="text-3xl font-black text-black leading-tight tracking-tight">
+        <h2 className="text-2xl font-bold leading-tight tracking-tight font-sans">
           {question.text}
         </h2>
 
-        {/* Feedback Overlay */}
-        {selectedAnswer && (
-          <div className={`absolute inset-0 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm transition-all duration-300`}>
-            {isCorrect ? (
-              <CheckCircle2 className="w-20 h-20 text-green-500 animate-bounce" />
-            ) : (
-              <XCircle className="w-20 h-20 text-red-500 animate-shake" />
-            )}
-            <p className={`text-2xl font-bold mt-4 ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
-              {isCorrect ? '+100 PTS' : 'STILL AT GATE'}
-            </p>
-          </div>
-        )}
+        {/* Feedback Overlay - TESTING WITH INLINE HEX CODES */}
+{selectedAnswer && (
+  <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/95 backdrop-blur-md transition-all duration-300 z-50 font-mono">
+    {isCorrect ? (
+      <>
+        <CheckCircle2 className="w-24 h-24 animate-bounce" style={{ color: '#009898' }} strokeWidth={3} />
+        <p className="text-2xl font-black mt-4 tracking-tight" style={{ color: '#009898' }}>
+          Cleared for takeoff
+        </p>
+      </>
+    ) : (
+      <>
+        <XCircle className="w-24 h-24 animate-pulse" style={{ color: '#F58220' }} strokeWidth={3} />
+        <p className="text-2xl font-black mt-4 tracking-tight" style={{ color: '#F58220' }}>
+          Still at gate
+        </p>
+      </>
+    )}
+  </div>
+)}
       </div>
-
+    
       {/* Answer Grid */}
-      <div className="grid grid-cols-1 gap-4 mb-6">
-        {question.options.map((option) => (
-          <button
-            key={option}
-            onClick={() => handleAnswer(option)}
-            disabled={!!selectedAnswer}
-            className={`
-              w-full py-5 px-6 rounded-2xl font-bold text-xl transition-all shadow-md active:scale-95
-              ${selectedAnswer === option 
-                ? (isCorrect ? 'bg-green-500 text-white' : 'bg-red-500 text-white') 
-                : 'bg-white text-black border-2 border-slate-100 hover:border-gatwick-orange'}
-              ${selectedAnswer && option !== selectedAnswer ? 'opacity-40 scale-95' : 'opacity-100'}
-            `}
-          >
-            {option}
-          </button>
-        ))}
+      <div className="grid grid-cols-1 gap-4 mb-6 font-mono">
+        {question.options.map((option) => {
+          const isSelected = selectedAnswer === option;
+          let buttonStyles = "w-full py-5 px-6 rounded-2xl font-bold text-xl transition-all shadow-md active:scale-95 border-2 ";
+          
+          if (!selectedAnswer) {
+            buttonStyles += "bg-white text-gatwick-congress-blue border-transparent hover:border-gatwick-teal";
+          } else if (isSelected) {
+            buttonStyles += isCorrect 
+              ? "!bg-gatwick-teal !text-white !border-gatwick-teal" 
+              : "!bg-gatwick-orange !text-white !border-gatwick-orange";
+          } else {
+            buttonStyles += "bg-white text-gatwick-congress-blue opacity-30 scale-95 border-transparent";
+          }
+
+          return (
+            <button key={option} onClick={() => handleAnswer(option)} disabled={!!selectedAnswer} className={buttonStyles}>
+              {option}
+            </button>
+          );
+        })}
       </div>
     </main>
   );
