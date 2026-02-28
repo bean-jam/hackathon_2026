@@ -1,15 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-gatwick-viking: #61AFDF;
+  --color-gatwick-viking-blue: #61AFDF;
   --color-gatwick-congress-blue: #004990;
   --color-gatwick-teal: #009898;
   --color-gatwick-orange: #F58220;
+  --color-gatwick-sky: #E8F4FC;
 }
 
 :root {
-  --background: #61AFDF;
-  --foreground: #004990;
+  --background: var(--color-gatwick-sky);
+  --foreground: var(--color-gatwick-congress-blue);
 }
 
 @theme inline {
@@ -22,5 +23,15 @@
 @layer base {
   body {
     @apply bg-background text-foreground antialiased;
+  }
+
+  /* 1. This makes EVERY button in your app Congress Blue by default */
+  button {
+    @apply bg-gatwick-congress-blue text-white font-bold py-3 px-6 rounded-xl transition-all active:scale-95 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* 2. Optional: A secondary button style if you need a "Viking Blue" one */
+  .btn-viking {
+    @apply bg-gatwick-viking-blue text-white;
   }
 }

@@ -70,23 +70,23 @@ export default function OrderingQuestion({
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <h2 className="text-2xl font-black text-white text-center">{text}</h2>
-      <p className="text-white/80 text-center">Drag or tap arrows to reorder</p>
+    <div className="flex flex-col gap-4 font-sans">
+      <h2 className="text-2xl font-black text-gatwick-congress-blue text-center uppercase tracking-tighter">
+        {text}
+      </h2>
+      <p className="text-gatwick-viking text-center font-bold">Drag or tap arrows to reorder</p>
 
       <div className="flex flex-col gap-2">
         {orderedItems.map((item, index) => {
-          const correctIndex = correctOrder.indexOf(item);
-          const isInCorrectPosition = showFeedback && index === correctIndex;
-          const isInWrongPosition = showFeedback && index !== correctIndex;
-
-          let itemStyle = 'bg-white border-2 border-slate-200';
-          if (isInCorrectPosition) {
-            itemStyle = 'bg-green-100 border-2 border-green-500';
-          } else if (isInWrongPosition) {
-            itemStyle = 'bg-red-100 border-2 border-red-500';
+          // Logic: If feedback is shown, the color is global for the whole list based on isCorrect
+          let itemStyle = '!bg-white border-2 border-slate-200';
+          
+          if (showFeedback) {
+            itemStyle = isCorrect 
+              ? '!bg-gatwick-teal !text-white border-transparent' 
+              : '!bg-gatwick-orange !text-white border-transparent';
           } else if (draggedIndex === index) {
-            itemStyle = 'bg-gatwick-orange/20 border-2 border-gatwick-orange';
+            itemStyle = '!bg-gatwick-viking/20 border-2 border-gatwick-viking';
           }
 
           return (
@@ -97,28 +97,34 @@ export default function OrderingQuestion({
               onDragOver={(e) => handleDragOver(e, index)}
               onDragEnd={handleDragEnd}
               className={`
-                flex items-center gap-3 p-4 rounded-xl font-bold text-lg transition-all shadow-sm cursor-grab active:cursor-grabbing
+                flex items-center gap-3 p-4 rounded-xl font-bold text-lg transition-all shadow-sm 
+                ${!showFeedback ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'}
                 ${itemStyle}
               `}
             >
-              <GripVertical className="w-5 h-5 text-gray-400" />
-              <span className="flex-grow text-black">{index + 1}. {item}</span>
-              <div className="flex flex-col gap-1">
-                <button
-                  onClick={() => moveItem(index, 'up')}
-                  disabled={index === 0 || disabled || showFeedback}
-                  className="p-1 bg-slate-100 rounded hover:bg-slate-200 disabled:opacity-30"
-                >
-                  ▲
-                </button>
-                <button
-                  onClick={() => moveItem(index, 'down')}
-                  disabled={index === orderedItems.length - 1 || disabled || showFeedback}
-                  className="p-1 bg-slate-100 rounded hover:bg-slate-200 disabled:opacity-30"
-                >
-                  ▼
-                </button>
-              </div>
+              <GripVertical className={`w-5 h-5 ${showFeedback ? 'text-white/50' : 'text-gray-400'}`} />
+              <span className={`flex-grow ${showFeedback ? 'text-white' : 'text-gatwick-congress-blue'}`}>
+                {index + 1}. {item}
+              </span>
+              
+              {!showFeedback && (
+                <div className="flex flex-col gap-1">
+                  <button
+                    onClick={() => moveItem(index, 'up')}
+                    disabled={index === 0 || disabled}
+                    className="p-1 !bg-slate-100 !text-gatwick-congress-blue rounded hover:!bg-slate-200 disabled:opacity-30"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    onClick={() => moveItem(index, 'down')}
+                    disabled={index === orderedItems.length - 1 || disabled}
+                    className="p-1 !bg-slate-100 !text-gatwick-congress-blue rounded hover:!bg-slate-200 disabled:opacity-30"
+                  >
+                    ▼
+                  </button>
+                </div>
+              )}
             </div>
           );
         })}
@@ -128,22 +134,27 @@ export default function OrderingQuestion({
         <button
           onClick={handleSubmit}
           disabled={disabled}
-          className="w-full py-3 px-6 bg-black text-white font-bold text-lg rounded-xl shadow-md hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-50"
+          className="w-full py-4 px-6 !bg-gatwick-congress-blue text-white font-black text-xl rounded-xl shadow-lg hover:!bg-gatwick-teal transition-all active:scale-95 disabled:opacity-30 uppercase font-mono"
         >
-          Submit Order
+          Confirm Order
         </button>
       )}
 
       {showFeedback && (
-        <div className="flex flex-col items-center gap-2 p-4 bg-white/90 rounded-xl">
+        <div className="flex flex-col items-center gap-2 p-6 bg-white/90 rounded-2xl shadow-xl border-2 border-white animate-in slide-in-from-bottom-4 duration-300">
           {isCorrect ? (
-            <CheckCircle2 className="w-16 h-16 text-green-500 animate-bounce" />
+            <CheckCircle2 className="w-16 h-16 text-gatwick-teal animate-bounce" strokeWidth={3} />
           ) : (
-            <XCircle className="w-16 h-16 text-red-500" />
+            <XCircle className="w-16 h-16 text-gatwick-orange animate-shake" strokeWidth={3} />
           )}
-          <p className={`text-xl font-bold ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
-            {isCorrect ? 'Perfect Order!' : 'Incorrect Order'}
+          <p className={`text-2xl font-black uppercase font-mono ${isCorrect ? 'text-gatwick-teal' : 'text-gatwick-orange'}`}>
+            {isCorrect ? 'Perfect Flight' : 'Sequence Error'}
           </p>
+          {!isCorrect && (
+             <p className="text-sm font-bold text-gatwick-congress-blue opacity-70">
+               Correct order didn't match!
+             </p>
+          )}
         </div>
       )}
     </div>

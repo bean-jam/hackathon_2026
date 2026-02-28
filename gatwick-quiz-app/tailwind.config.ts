@@ -9,7 +9,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        'gatwick-blue': '#005EB8',
+        'gatwick-congress-blue': '#004990',
+        'gatwick-viking-blue': '#61AFDF',
+        'gatwick-teal': '#009898',
         'gatwick-orange': '#FF6B00',
         'gatwick-sky': '#E8F4FC',
       },
