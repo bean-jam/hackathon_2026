@@ -18,7 +18,7 @@ export default function PlayPage() {
   const [hasStarted, setHasStarted] = useState(false);
   const [hasAnswered, setHasAnswered] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [pendingPoints, setPendingPoints] = useState(0); // Store points to add when feedback is shown
+  const [pendingPoints, setPendingPoints] = useState(0);
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -29,25 +29,21 @@ export default function PlayPage() {
       return () => clearTimeout(timer);
     }
 
-    // When timer reaches 0, show the answer feedback
     if (timeLeft === 0 && isTimerRunning) {
       setIsTimerRunning(false);
       
-      // If user hasn't answered, mark as incorrect
       if (!hasAnswered) {
         setSelectedAnswer(null);
         setIsCorrect(false);
         setPendingPoints(0);
       }
       
-      // Add pending points to score when feedback is revealed
       if (pendingPoints > 0) {
         setScore((s) => s + pendingPoints);
       }
       
       setShowFeedback(true);
 
-      // Wait 2 seconds to show feedback, then move to next question
       setTimeout(() => {
         moveToNextQuestion();
       }, 2000);
@@ -63,15 +59,12 @@ export default function PlayPage() {
     const correct = option === currentQuestion.correct_answer;
     setIsCorrect(correct);
 
-    // Calculate points based on time left (only if correct), but don't add to score yet
     if (correct) {
       const points = 100 + timeLeft * 5;
-      setPendingPoints(points); // Store points to add later
+      setPendingPoints(points);
     } else {
       setPendingPoints(0);
     }
-
-    // Timer continues running - user waits for it to finish
   };
 
   const moveToNextQuestion = () => {
@@ -125,25 +118,27 @@ export default function PlayPage() {
 
       {/* Username Input - Only show if quiz hasn't started */}
       {!hasStarted && (
-        <div className="bg-white p-4 rounded-2xl shadow-sm">
-          <h2 className="text-lg font-bold mb-2 text-black">Enter your name to start:</h2>
-          <form onSubmit={handleUsernameSubmit}>
-            <input
-              type="text"
-              value={inputName}
-              onChange={(e) => setInputName(e.target.value)}
-              className="w-full p-2 border rounded-md text-black placeholder-gray-500"
-              placeholder="Enter your full name"
-            />
-            <button
-              type="submit"
-              disabled={!inputName.trim()}
-              className="w-full p-2 bg-gatwick-blue text-white rounded-md mt-2 disabled:opacity-50"
-            >
-              Start Quiz
-            </button>
-          </form>
-        </div>
+        <div className="bg-white p-6 rounded-2xl shadow-sm">
+        <h2 className="text-xl font-bold mb-4 text-black text-center">
+          Enter your name to start:
+        </h2>
+        <form onSubmit={handleUsernameSubmit} className="flex flex-col gap-4">
+          <input
+            type="text"
+            value={inputName}
+            onChange={(e) => setInputName(e.target.value)}
+            className="w-full p-3 border-2 border-slate-200 rounded-xl text-black placeholder-gray-400 focus:border-gatwick-blue focus:outline-none"
+            placeholder="Enter your full name"
+          />
+          <button
+            type="submit"
+            disabled={!inputName.trim()}
+            className="w-full py-3 px-6 bg-black text-white font-bold text-lg rounded-xl shadow-md hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Start Quiz
+          </button>
+        </form>
+      </div>
       )}
 
       {/* Quiz - Only show after quiz has started */}
@@ -165,28 +160,52 @@ export default function PlayPage() {
                 <p className={`text-2xl font-bold mt-4 ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
                   {isCorrect ? `+${pendingPoints} PTS` : 'INCORRECT'}
                 </p>
+                {/* Show correct answer if user got it wrong */}
+                {!isCorrect && (
+                  <p className="text-lg font-medium mt-2 text-black">
+                    Correct answer: <span className="text-green-600 font-bold">{currentQuestion.correct_answer}</span>
+                  </p>
+                )}
               </div>
             )}
           </div>
 
           <div className="grid grid-cols-1 gap-4 mb-6">
-            {currentQuestion.options.map((option) => (
-              <button
-                key={option}
-                onClick={() => handleAnswer(option)}
-                disabled={hasAnswered || showFeedback}
-                className={`
-                  w-full py-5 px-6 rounded-2xl font-bold text-xl transition-all shadow-md active:scale-95
-                  ${selectedAnswer === option
-                    ? 'bg-gatwick-orange text-white'
-                    : 'bg-white text-black border-2 border-slate-100 hover:border-gatwick-orange'
-                  }
-                  ${hasAnswered && option !== selectedAnswer ? 'opacity-40 scale-95' : 'opacity-100'}
-                `}
-              >
-                {option}
-              </button>
-            ))}
+            {currentQuestion.options.map((option) => {
+              // Determine button styling based on feedback state
+              const isSelected = selectedAnswer === option;
+              const isCorrectAnswer = option === currentQuestion.correct_answer;
+              
+              let buttonStyle = 'bg-white text-black border-2 border-slate-100 hover:border-gatwick-orange';
+              
+              if (showFeedback) {
+                // When feedback is shown, highlight correct answer in green
+                if (isCorrectAnswer) {
+                  buttonStyle = 'bg-green-500 text-white';
+                } else if (isSelected && !isCorrect) {
+                  // User's wrong selection in red
+                  buttonStyle = 'bg-red-500 text-white';
+                }
+              } else if (isSelected) {
+                // Before feedback, just show selection in orange
+                buttonStyle = 'bg-gatwick-orange text-white';
+              }
+
+              return (
+                <button
+                  key={option}
+                  onClick={() => handleAnswer(option)}
+                  disabled={hasAnswered || showFeedback}
+                  className={`
+                    w-full py-5 px-6 rounded-2xl font-bold text-xl transition-all shadow-md active:scale-95
+                    ${buttonStyle}
+                    ${hasAnswered && !showFeedback && option !== selectedAnswer ? 'opacity-40 scale-95' : 'opacity-100'}
+                  `}
+                >
+                  {option}
+                </button>
+              );
+            })}
           </div>
         </>
       )}
