@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Award, Timer } from 'lucide-react';
+import { Award, Timer,Trophy, Medal, User  } from 'lucide-react';
 import { questions } from '@/lib/mockQuestions';
 import { saveScore, getLeaderboard } from '@/lib/supabase';
 import QuestionRenderer from '@/components/QuestionRenderer';
@@ -192,35 +192,93 @@ export default function PlayPage() {
       )}
 
       {/* Leaderboard */}
-      {isQuizComplete && (
-        <div className="bg-white p-8 rounded-3xl shadow-xl flex-grow flex flex-col justify-center items-center text-center gap-6 border-2 border-white">
-          <h2 className="text-3xl font-black text-black leading-tight tracking-tight">
-            🏆 Leaderboard
-          </h2>
-          <p className="text-lg text-gray-600">
-            Your score: <span className="font-bold text-gatwick-congress-blue">{finalScore} pts</span>
-          </p>
-          <ul className="w-full">
-            {leaderboard.map((entry, index) => (
-              <li
-                key={`${entry.username}-${entry.created_at}`}
-                className={`flex justify-between p-3 border-b ${entry.username === username ? 'bg-gatwick-congress-blue/10 rounded-lg' : ''}`}
-              >
-                <span className="font-medium text-black">
-                  {index + 1}. {entry.username}
-                </span>
-                <span className="font-bold text-black">{entry.score} pts</span>
-              </li>
-            ))}
-          </ul>
-          <button
-            onClick={() => window.location.reload()}
-            className="w-full py-3 px-6 bg-black text-white font-bold text-lg rounded-xl shadow-md hover:bg-blue-700 transition-all active:scale-95"
+{isQuizComplete && (
+  <div className="bg-white p-8 rounded-3xl shadow-xl flex-grow flex flex-col justify-center items-center text-center gap-6 border-2 border-white">
+    <h2 className="text-3xl font-black text-gatwick-congress-blue leading-tight tracking-tight uppercase font-mono">
+      🏆 Leaderboard
+    </h2>
+    <p className="text-lg text-gray-600">
+      Your score: <span className="font-bold text-gatwick-congress-blue">{finalScore} pts</span>
+    </p>
+    
+    <ul className="w-full space-y-2">
+      {leaderboard.map((entry, index) => {
+        const isCurrentUser = entry.username === username;
+        const position = index + 1;
+        
+        // Get position icon and styling
+        const getPositionIcon = () => {
+          switch (position) {
+            case 1:
+              return <Trophy className="w-6 h-6 text-yellow-500" strokeWidth={2.5} />;
+            case 2:
+              return <Medal className="w-6 h-6 text-gray-400" strokeWidth={2.5} />;
+            case 3:
+              return <Medal className="w-6 h-6 text-amber-600" strokeWidth={2.5} />;
+            default:
+              return <span className="w-6 h-6 flex items-center justify-center text-sm font-bold text-slate-400">{position}</span>;
+          }
+        };
+
+        return (
+          <li
+            key={`${entry.username}-${entry.created_at}`}
+            className={`
+              flex items-center justify-between p-4 rounded-xl transition-all
+              ${isCurrentUser 
+                ? 'bg-gatwick-congress-blue text-white shadow-lg scale-105 border-2 border-gatwick-teal' 
+                : 'bg-slate-50 text-gatwick-congress-blue border border-slate-100'
+              }
+            `}
           >
-            Play Again
-          </button>
-        </div>
-      )}
-    </main>
+            {/* Left: Position Icon + Name */}
+            <div className="flex items-center gap-3">
+              <div className={`
+                w-10 h-10 rounded-full flex items-center justify-center
+                ${isCurrentUser ? 'bg-white/20' : 'bg-white'}
+              `}>
+                {getPositionIcon()}
+              </div>
+              <span className="font-bold text-lg">
+                {entry.username}
+                {isCurrentUser && (
+                  <span className="ml-2 text-xs bg-gatwick-teal px-2 py-0.5 rounded-full uppercase font-mono">
+                    You
+                  </span>
+                )}
+              </span>
+            </div>
+
+            {/* Right: Score + User Indicator */}
+            <div className="flex items-center gap-2">
+              <span className="font-black text-xl font-mono">{entry.score}</span>
+              <span className={`text-sm ${isCurrentUser ? 'text-white/70' : 'text-slate-400'}`}>pts</span>
+              {isCurrentUser && (
+                <User className="w-5 h-5 ml-1 text-gatwick-teal" strokeWidth={2.5} />
+              )}
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+
+    {/* Show user's position if not in top 10 */}
+    {!leaderboard.some(entry => entry.username === username) && (
+      <div className="w-full p-4 bg-gatwick-sky rounded-xl border-2 border-dashed border-gatwick-congress-blue/30">
+        <p className="text-sm text-gatwick-congress-blue font-medium">
+          Your score of <span className="font-bold">{finalScore} pts</span> didn't make the top 10. Keep trying!
+        </p>
+      </div>
+    )}
+
+    <button
+      onClick={() => window.location.reload()}
+      className="w-full py-4 px-6 !bg-gatwick-congress-blue text-white font-black text-xl rounded-xl shadow-lg hover:!bg-gatwick-teal transition-all active:scale-95 uppercase font-mono"
+    >
+      Play Again
+    </button>
+  </div>
+)}
+   </main>
   );
 }
