@@ -162,7 +162,7 @@ export default function WordSearchQuestion({
         disabled={disabled}
         className="w-full py-4 px-6 !bg-gatwick-congress-blue text-white font-black text-xl rounded-xl shadow-lg hover:!bg-gatwick-teal transition-all active:scale-95 disabled:opacity-30 uppercase font-mono"
       >
-        Finish Quiz ({foundWords.length * 50} pts)
+        Submit Wordsearch ({foundWords.length * 50} pts)
       </button>
     </div>
   );
