@@ -13,6 +13,9 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   title: "Airhead",
   description: "From London Gatwick - the airport for everyone.",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({

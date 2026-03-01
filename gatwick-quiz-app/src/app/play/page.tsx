@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Image from 'next/image'; // Add this import
 import { Award, Timer,Trophy, Medal, User  } from 'lucide-react';
 import { questions } from '@/lib/mockQuestions';
 import { saveScore, getLeaderboard } from '@/lib/supabase';
@@ -150,28 +151,55 @@ export default function PlayPage() {
         </div>
       </div>
 
-      {/* Username Input */}
+      {/* Username Input with Logo */}
       {!hasStarted && (
-        <div className="bg-white p-6 rounded-2xl shadow-sm">
-          <h2 className="text-xl font-bold mb-4 text-black text-center">
-            Enter your name to start:
-          </h2>
-          <form onSubmit={handleUsernameSubmit} className="flex flex-col gap-4">
-            <input
-              type="text"
-              value={inputName}
-              onChange={(e) => setInputName(e.target.value)}
-              className="w-full p-3 border-2 border-slate-200 rounded-xl text-black placeholder-gray-400 focus:border-gatwick-blue focus:outline-none"
-              placeholder="Enter your full name"
+        <div className="flex-grow flex flex-col items-center justify-center gap-6">
+          {/* Logo */}
+          <div className="flex flex-col items-center gap-4">
+            <Image
+              src="/logo.png"
+              alt="Airhead Logo"
+              width={200}
+              height={200}
+              className="object-contain"
+              priority
             />
-            <button
-              type="submit"
-              disabled={!inputName.trim()}
-              className="w-full py-3 px-6 bg-black text-white font-bold text-lg rounded-xl shadow-md hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Start Quiz
-            </button>
-          </form>
+            <h1 className="text-3xl font-black text-gatwick-congress-blue italic font-mono tracking-tight">
+              Airhead
+            </h1>
+            <p className="text-slate-500 text-center text-sm">
+              Test your airport knowledge!
+            </p>
+          </div>
+
+          {/* Name Input Card */}
+          <div className="w-full bg-white p-6 rounded-2xl shadow-lg border border-slate-100">
+            <h2 className="text-xl font-bold mb-4 text-gatwick-congress-blue text-center">
+              Enter your name to start
+            </h2>
+            <form onSubmit={handleUsernameSubmit} className="flex flex-col gap-4">
+              <input
+                type="text"
+                value={inputName}
+                onChange={(e) => setInputName(e.target.value)}
+                className="w-full p-4 border-2 border-slate-200 rounded-xl text-black placeholder-gray-400 focus:border-gatwick-teal focus:outline-none text-lg"
+                placeholder="Your name"
+                autoFocus
+              />
+              <button
+                type="submit"
+                disabled={!inputName.trim()}
+                className="w-full py-4 px-6 bg-gatwick-congress-blue text-white font-black text-xl rounded-xl shadow-md hover:bg-gatwick-teal transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed uppercase font-mono"
+              >
+                Take Off
+              </button>
+            </form>
+          </div>
+
+          {/* Footer */}
+          <p className="text-xs text-slate-400 text-center">
+            From London Gatwick - the airport for everyone
+          </p>
         </div>
       )}
 
