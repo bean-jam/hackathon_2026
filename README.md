@@ -9,6 +9,9 @@
 
 ---
 
+## Play on mobile
+<img src="https://github.com/user-attachments/assets/06d1be12-cba2-4881-8326-126b2ed9b4f0" width="500" alt="b7nSD9">
+
 ## Demo
 **[Watch the Demo on YouTube](https://youtu.be/lu9MpFOq1Lk)**
 
