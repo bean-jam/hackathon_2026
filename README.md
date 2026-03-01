@@ -17,6 +17,8 @@
 ![gallery](https://github.com/user-attachments/assets/7824e939-2ad9-43e8-a25b-5ed01c2d24e7)
 ![gallery (2)](https://github.com/user-attachments/assets/2691b94e-2f93-4a9e-bebd-77866c1672ac)
 ![gallery (1)](https://github.com/user-attachments/assets/b22e6bdb-acf9-4e43-87c0-52ba1e211b39)
+![gallery (3)](https://github.com/user-attachments/assets/34c79d75-218b-4500-91f4-be4d556a04db)
+
 
 ## Inspiration
 While waiting at the gate in London Gatwick's North or South terminals, passengers often look for themed entertainment. Inspired by the addictive nature of **Wordle** and **2048**, we created **Airhead**—a quiz designed specifically for the Gatwick environment. 
