@@ -219,9 +219,9 @@ export const questions: Question[] = [
       ['T', 'U', 'I', 'L', 'A'],
       ['B', 'A', 'B', 'O', 'S'],
       ['N', 'O', 'R', 'S', 'E'],
-      ['W', 'I', 'N', 'G', 'S'],
+      ['W', 'I', 'Z', 'Z', 'S'],
     ],
-    validWords: ["EASY", "TUI", "BA", "NORSE", "WINGS"],
+    validWords: ["EASY", "TUI", "BA", "NORSE", "WIZZ"],
     timeLimit: 40,
   }
 ];
