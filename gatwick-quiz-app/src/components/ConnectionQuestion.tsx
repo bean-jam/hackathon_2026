@@ -54,25 +54,34 @@ export default function ConnectionQuestion({
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <h2 className="text-2xl font-black text-black text-center">{text}</h2>
-      <p className="text-gray-600 text-center">Select 4 items that belong together</p>
+    <div className="flex flex-col gap-4 font-sans">
+      <h2 className="text-2xl font-black text-gatwick-congress-blue text-center uppercase tracking-tighter">
+        {text}
+      </h2>
+      <p className="text-gatwick-viking text-center font-bold">Select 4 items that belong together</p>
 
       <div className="grid grid-cols-2 gap-3">
         {items.map((item) => {
           const isSelected = selectedItems.includes(item);
           const isCorrectItem = correctItems.includes(item);
 
-          let buttonStyle = 'bg-white text-black border-2 border-slate-200';
+          // Default state: White background to override your new global button default
+          let buttonStyle = '!bg-white !text-gatwick-congress-blue border-2 border-slate-200';
 
           if (showFeedback) {
             if (isCorrectItem) {
-              buttonStyle = 'bg-green-500 text-white';
+              // Highlight the correct ones in Teal
+              buttonStyle = '!bg-gatwick-teal !text-white border-transparent';
             } else if (isSelected && !isCorrectItem) {
-              buttonStyle = 'bg-red-500 text-white';
+              // Highlight the user's wrong choices in Orange
+              buttonStyle = '!bg-gatwick-orange !text-white border-transparent';
+            } else {
+              // Dim items that weren't part of the connection
+              buttonStyle = '!bg-slate-50 !text-slate-400 border-transparent opacity-50';
             }
           } else if (isSelected) {
-            buttonStyle = 'bg-gatwick-orange text-white border-2 border-gatwick-orange';
+            // Active selection state before submitting
+            buttonStyle = '!bg-gatwick-viking !text-white border-transparent shadow-inner scale-95';
           }
 
           return (
@@ -95,25 +104,28 @@ export default function ConnectionQuestion({
         <button
           onClick={handleSubmit}
           disabled={selectedItems.length !== 4 || disabled}
-          className="w-full py-3 px-6 bg-black text-white font-bold text-lg rounded-xl shadow-md hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-4 px-6 !bg-gatwick-congress-blue text-white font-black text-xl rounded-xl shadow-lg hover:!bg-gatwick-teal transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed uppercase font-mono"
         >
-          Submit ({selectedItems.length}/4 selected)
+          Confirm ({selectedItems.length}/4)
         </button>
       )}
 
       {showFeedback && (
-        <div className="flex flex-col items-center gap-2 p-4 bg-white/90 rounded-xl">
+        <div className="flex flex-col items-center gap-2 p-6 bg-white/90 rounded-2xl shadow-xl border-2 border-white animate-in fade-in zoom-in duration-300">
           {isCorrect ? (
-            <CheckCircle2 className="w-16 h-16 text-green-500 animate-bounce" />
+            <CheckCircle2 className="w-16 h-16 text-gatwick-teal animate-bounce" strokeWidth={3} />
           ) : (
-            <XCircle className="w-16 h-16 text-red-500" />
+            <XCircle className="w-16 h-16 text-gatwick-orange animate-pulse" strokeWidth={3} />
           )}
-          <p className={`text-xl font-bold ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
-            {isCorrect ? 'Correct!' : 'Incorrect'}
+          <p className={`text-2xl font-black uppercase font-mono ${isCorrect ? 'text-gatwick-teal' : 'text-gatwick-orange'}`}>
+            {isCorrect ? 'Connection Found' : 'Broken Link'}
           </p>
-          <p className="text-gray-600 text-center">
-            Connection: <span className="font-bold">{connectionHint}</span>
-          </p>
+          <div className="mt-2 text-center">
+            <p className="text-xs uppercase font-bold text-slate-400">Category</p>
+            <p className="text-lg font-black text-gatwick-congress-blue leading-tight">
+              {connectionHint}
+            </p>
+          </div>
         </div>
       )}
     </div>

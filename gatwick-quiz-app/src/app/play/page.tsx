@@ -140,12 +140,12 @@ export default function PlayPage() {
       {/* Header Stat Bar */}
       <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm">
         <div className="flex items-center gap-2 text-black font-bold text-lg">
-          <Award className="w-6 h-6 text-gatwick-orange" />
+          <Award className="w-6 h-6 text-gatwick-congress-blue" />
           <span>{score} pts</span>
         </div>
         <div className="flex items-center gap-2 text-black font-medium">
           <span>{username}</span>
-          <Timer className="w-6 h-6 text-gatwick-blue" />
+          <Timer className="w-6 h-6 text-gatwick-congress-blue" />
           <span>{timeLeft}s</span>
         </div>
       </div>
@@ -198,13 +198,13 @@ export default function PlayPage() {
             🏆 Leaderboard
           </h2>
           <p className="text-lg text-gray-600">
-            Your score: <span className="font-bold text-gatwick-orange">{finalScore} pts</span>
+            Your score: <span className="font-bold text-gatwick-congress-blue">{finalScore} pts</span>
           </p>
           <ul className="w-full">
             {leaderboard.map((entry, index) => (
               <li
                 key={`${entry.username}-${entry.created_at}`}
-                className={`flex justify-between p-3 border-b ${entry.username === username ? 'bg-gatwick-orange/10 rounded-lg' : ''}`}
+                className={`flex justify-between p-3 border-b ${entry.username === username ? 'bg-gatwick-congress-blue/10 rounded-lg' : ''}`}
               >
                 <span className="font-medium text-black">
                   {index + 1}. {entry.username}

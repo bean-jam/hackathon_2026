@@ -18,7 +18,7 @@ interface QuestionRendererProps {
   pendingPoints: number;
 }
 
-// Multiple choice renderer - defined BEFORE the main component
+// Multiple choice renderer
 function MultipleChoiceRenderer({
   question,
   onAnswer,
@@ -38,45 +38,61 @@ function MultipleChoiceRenderer({
 }) {
   return (
     <>
+      {/* Question Card */}
       <div className="bg-white p-8 rounded-3xl shadow-xl flex-grow flex flex-col justify-center items-center text-center gap-6 border-2 border-white relative overflow-hidden">
-        <h2 className="text-3xl font-black text-black leading-tight tracking-tight">
+        <h2 className="text-3xl font-black text-gatwick-congress-blue leading-tight tracking-tight font-sans">
           {question.text}
         </h2>
 
+        {/* Feedback Overlay */}
         {showFeedback && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm transition-all duration-300">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm transition-all duration-300 z-50">
             {isCorrect ? (
-              <CheckCircle2 className="w-20 h-20 text-green-500 animate-bounce" />
+              <>
+                <CheckCircle2 className="w-20 h-20 text-gatwick-teal animate-bounce" strokeWidth={3} />
+                <p className="text-2xl font-black mt-4 text-gatwick-teal font-mono">
+                  +{pendingPoints} PTS
+                </p>
+              </>
             ) : (
-              <XCircle className="w-20 h-20 text-red-500" />
-            )}
-            <p className={`text-2xl font-bold mt-4 ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
-              {isCorrect ? `+${pendingPoints} PTS` : 'INCORRECT'}
-            </p>
-            {!isCorrect && (
-              <p className="text-lg font-medium mt-2 text-black">
-                Correct answer: <span className="text-green-600 font-bold">{question.correct_answer}</span>
-              </p>
+              <>
+                <XCircle className="w-20 h-20 text-gatwick-orange animate-pulse" strokeWidth={3} />
+                <p className="text-2xl font-black mt-4 text-gatwick-orange font-mono">
+                  STILL AT GATE
+                </p>
+              </>
             )}
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 mb-6">
+      {/* Answer Grid */}
+      <div className="grid grid-cols-1 gap-4 mb-6 font-mono">
         {question.options.map((option) => {
           const isSelected = selectedAnswer === option;
           const isCorrectAnswer = option === question.correct_answer;
 
-          let buttonStyle = 'bg-white text-black border-2 border-slate-100 hover:border-gatwick-orange';
+          // Base styles for all buttons
+          let buttonClasses = "w-full py-5 px-6 rounded-2xl font-bold text-xl transition-all shadow-md active:scale-95 border-2 ";
 
-          if (showFeedback) {
-            if (isCorrectAnswer) {
-              buttonStyle = 'bg-green-500 text-white';
-            } else if (isSelected && !isCorrect) {
-              buttonStyle = 'bg-red-500 text-white';
+          if (!showFeedback) {
+            // State: Before answering
+            buttonClasses += isSelected 
+              ? "bg-white border-gatwick-teal text-gatwick-congress-blue" 
+              : "bg-white border-slate-100 text-gatwick-congress-blue hover:border-gatwick-viking";
+          } else {
+            // State: After answering
+            if (isSelected) {
+              buttonClasses += isCorrect 
+                ? "bg-gatwick-teal text-white border-gatwick-teal" // User was correct
+                : "bg-gatwick-orange text-white border-gatwick-orange"; // User was incorrect
+            } else if (isCorrectAnswer) {
+              // Highlight the right answer if user missed it
+              buttonClasses += "bg-gatwick-teal/20 border-gatwick-teal text-gatwick-congress-blue";
+            } else {
+              // Dim the wrong, unselected answers
+              buttonClasses += "bg-slate-50 border-slate-100 text-slate-400 opacity-40";
             }
-          } else if (isSelected) {
-            buttonStyle = 'bg-gatwick-orange text-white';
           }
 
           return (
@@ -84,11 +100,7 @@ function MultipleChoiceRenderer({
               key={option}
               onClick={() => onAnswer(option)}
               disabled={disabled || showFeedback}
-              className={`
-                w-full py-5 px-6 rounded-2xl font-bold text-xl transition-all shadow-md active:scale-95
-                ${buttonStyle}
-                ${disabled && !showFeedback && option !== selectedAnswer ? 'opacity-40 scale-95' : 'opacity-100'}
-              `}
+              className={buttonClasses}
             >
               {option}
             </button>

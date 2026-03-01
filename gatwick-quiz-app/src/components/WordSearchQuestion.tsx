@@ -70,15 +70,18 @@ export default function WordSearchQuestion({
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <h2 className="text-2xl font-black text-white text-center">{text}</h2>
-      <p className="text-white/80 text-center">Tap letters to select, then check word</p>
+    <div className="flex flex-col gap-4 font-sans">
+      <h2 className="text-2xl font-black text-gatwick-congress-blue text-center uppercase tracking-tighter">
+        {text}
+      </h2>
+      <p className="text-gatwick-viking text-center font-bold">Tap letters to select, then check word</p>
 
+      {/* Word Search Grid */}
       <div
-        className="grid p-3 bg-white rounded-xl shadow-md mx-auto"
+        className="grid p-3 bg-white rounded-2xl shadow-xl mx-auto border-2 border-white"
         style={{ 
           gridTemplateColumns: `repeat(${grid[0].length}, 1fr)`,
-          gap: '2px',
+          gap: '4px',
         }}
       >
         {grid.map((row, rowIndex) =>
@@ -91,14 +94,16 @@ export default function WordSearchQuestion({
                 key={`${rowIndex}-${colIndex}`}
                 onClick={() => toggleCell(rowIndex, colIndex)}
                 className={`
-                  w-10 h-10 flex items-center justify-center font-bold text-lg rounded cursor-pointer transition-all select-none
-                  ${isSelected ? 'bg-blue-500 text-black scale-105' : 'bg-slate-100 text-black hover:bg-slate-200'}
+                  w-10 h-10 flex items-center justify-center font-black text-lg rounded-lg cursor-pointer transition-all select-none
+                  ${isSelected 
+                    ? '!bg-gatwick-congress-blue !text-white scale-105 shadow-md' 
+                    : 'bg-slate-100 text-gatwick-congress-blue hover:bg-gatwick-viking/20'}
                 `}
               >
                 <span className="relative">
                   {letter}
                   {isSelected && (
-                    <span className="absolute -top-1 -right-2 text-xs bg-white text-blue-500 rounded-full w-4 h-4 flex items-center justify-center">
+                    <span className="absolute -top-3 -right-3 text-[10px] bg-gatwick-teal text-white rounded-full w-4 h-4 flex items-center justify-center font-mono border border-white">
                       {selectionIndex + 1}
                     </span>
                   )}
@@ -109,23 +114,26 @@ export default function WordSearchQuestion({
         )}
       </div>
 
+      {/* Word Preview & Actions */}
       {selectedCells.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <div className="bg-white/20 p-3 rounded-xl text-center">
-            <span className="text-white font-bold text-lg">
+        <div className="flex flex-col gap-3 animate-in slide-in-from-bottom-2">
+          {/* THE REQUESTED CHANGE: bg-gatwick-congress-blue for the created word */}
+          <div className="bg-gatwick-congress-blue p-4 rounded-xl text-center shadow-inner">
+            <span className="text-white font-black text-2xl tracking-widest uppercase font-mono">
               {selectedCells.map((c) => grid[c.row][c.col]).join('')}
             </span>
           </div>
+          
           <div className="flex gap-2">
             <button
               onClick={checkWord}
-              className="flex-1 py-2 px-4 bg-green-500 text-white font-bold rounded-xl shadow-md hover:bg-green-600 transition-all active:scale-95"
+              className="flex-1 py-3 px-4 !bg-gatwick-teal text-white font-black rounded-xl shadow-md hover:opacity-90 transition-all active:scale-95 uppercase font-mono"
             >
-              Check Word
+              Check
             </button>
             <button
               onClick={clearSelection}
-              className="py-2 px-4 bg-red-500 text-white font-bold rounded-xl shadow-md hover:bg-red-600 transition-all active:scale-95"
+              className="py-3 px-6 !bg-gatwick-orange text-white font-black rounded-xl shadow-md hover:opacity-90 transition-all active:scale-95 uppercase font-mono"
             >
               Clear
             </button>
@@ -133,25 +141,28 @@ export default function WordSearchQuestion({
         </div>
       )}
 
-      <div className="bg-white p-4 rounded-xl shadow-sm">
-        <p className="font-bold text-black mb-2">Found Words ({foundWords.length}/{validWords.length}):</p>
+      {/* Progress Tracker */}
+      <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <p className="font-black text-gatwick-congress-blue mb-3 uppercase text-xs tracking-wider">
+          Words Found ({foundWords.length}/{validWords.length})
+        </p>
         <div className="flex flex-wrap gap-2">
           {foundWords.map((word) => (
-            <span key={word} className="px-3 py-1 bg-green-100 text-green-700 rounded-full font-medium flex items-center gap-1">
-              <CheckCircle2 className="w-4 h-4" />
+            <span key={word} className="px-3 py-1 bg-gatwick-teal/10 text-gatwick-teal rounded-full font-bold text-sm flex items-center gap-1 border border-gatwick-teal/20">
+              <CheckCircle2 className="w-4 h-4" strokeWidth={3} />
               {word}
             </span>
           ))}
-          {foundWords.length === 0 && <span className="text-gray-400">No words found yet</span>}
+          {foundWords.length === 0 && <span className="text-slate-400 italic text-sm">Scan the grid for words...</span>}
         </div>
       </div>
 
       <button
         onClick={handleFinish}
         disabled={disabled}
-        className="w-full py-3 px-6 bg-black text-white font-bold text-lg rounded-xl shadow-md hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-50"
+        className="w-full py-4 px-6 !bg-gatwick-congress-blue text-white font-black text-xl rounded-xl shadow-lg hover:!bg-gatwick-teal transition-all active:scale-95 disabled:opacity-30 uppercase font-mono"
       >
-        Finish ({foundWords.length * 50} pts)
+        Finish Quiz ({foundWords.length * 50} pts)
       </button>
     </div>
   );
