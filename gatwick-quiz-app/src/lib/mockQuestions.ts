@@ -88,5 +88,129 @@ export const questions: Question[] = [
     correct_answer: "Singapore Airlines",
     timeLimit: 8,
   },
-
+  {
+    id: "11",
+    type: "wordsearch",
+    text: "Find security checkpoint word",
+    grid: [
+      ['B', 'E', 'L', 'T', 'S'],
+      ['S', 'C', 'A', 'N', 'Y'],
+      ['T', 'R', 'A', 'Y', 'S'],
+      ['L', 'A', 'N', 'E', 'S'],
+      ['B', 'O', 'O', 'T', 'S'],
+    ],
+    validWords: ["BELT", "SCAN", "TRAY", "LANE", "BOOTS"],
+    "timeLimit": 40
+  },
+  {
+    id: '12',
+    type: 'wordsearch',
+    text: "Find customs and immigration words",
+    grid: [
+      ['V', 'I', 'S', 'A', 'S'],
+      ['P', 'A', 'S', 'S', 'P'],
+      ['D', 'U', 'T', 'Y', 'F'],
+      ['F', 'O', 'R', 'M', 'S'],
+      ['L', 'I', 'N', 'E', 'S'],
+    ],
+    validWords: ["VISAS", "PASS", "DUTY", "FORMS", "LINES"],
+    timeLimit: 40
+},
+{
+    id: '13',
+    type: 'wordsearch',
+    text: "Find items for a long flight",
+    grid: [
+      ['S', 'L', 'E', 'E', 'P', 'X'],
+      ['P', 'I', 'L', 'L', 'O', 'W'],
+      ['M', 'U', 'S', 'I', 'C', 'Q'],
+      ['B', 'L', 'A', 'N', 'K', 'S'],
+      ['M', 'O', 'V', 'I', 'E', 'S'],
+      ['G', 'A', 'M', 'E', 'S', 'Z'],
+    ],
+    validWords: ["SLEEP", "PILLOW", "MUSIC", "BLANK", "MOVIES", "GAMES"],
+    timeLimit: 50
+},
+{
+    id: '14',
+    type: 'wordsearch',
+    text: "Find airport terminal perks",
+    grid: [
+      ['L', 'O', 'U', 'N', 'G'],
+      ['C', 'A', 'F', 'E', 'E'],
+      ['F', 'R', 'E', 'E', 'W'],
+      ['B', 'A', 'T', 'H', 'S'],
+      ['F', 'O', 'O', 'D', 'S'],
+    ],
+    validWords: ["LOUNG", "CAFE", "FREE", "BATH", "FOODS"],
+    timeLimit: 35
+},
+{
+    id: '15',
+    type: 'ordering',
+    text: "Order the departure process (first to last)",
+    items: ["Security", "Check-in", "Boarding", "Take-off"],
+    correctOrder: ["Check-in", "Security", "Boarding", "Take-off"],
+    timeLimit: 20,
+},
+{
+    id: '16',
+    type: 'ordering',
+    text: "Order these by typical altitude (lowest to highest)",
+    items: ["Cruising Altitude", "Helicopter", "Drone", "Clouds"],
+    correctOrder: ["Drone", "Helicopter", "Clouds", "Cruising Altitude"],
+    timeLimit: 25,
+},
+{
+    id: '17',
+    type: 'ordering',
+    text: "Order these plane parts from nose to tail",
+    items: ["Wing", "Cockpit", "Galley", "Vertical Stabilizer"],
+    correctOrder: ["Cockpit", "Wing", "Galley", "Vertical Stabilizer"],
+    timeLimit: 20,
+},
+{
+    id: '18',
+    type: 'ordering',
+    text: "Order these by top speed (slowest to fastest)",
+    items: ["Baggage Tug", "Cessna", "Boeing 747", "Concorde"],
+    correctOrder: ["Baggage Tug", "Cessna", "Boeing 747", "Concorde"],
+    timeLimit: 25
+},
+{
+    id: '19',
+    type: 'connection',
+    text: "Find the 4 related words",
+    items: ["Gates", "Arrivals", "Taxi", "Lounge", "Restrooms", "Baggage", "Hotel", "Train"],
+    correctItems: ["Gates", "Arrivals", "Restrooms", "Baggage"],
+    connectionHint: "Standard icons on airport wayfinding signs",
+    timeLimit: 30,
+},
+{
+    id: '20',
+    type: 'connection',
+    text: "Find the 4 related words",
+    items: ["Perfume", "Water", "Lotion", "Shampoo", "Toothpaste", "Juice", "Honey", "Laptop"],
+    correctItems: ["Perfume", "Lotion", "Shampoo", "Toothpaste"],
+    connectionHint: "Toiletries allowed in a 100ml clear bag",
+    timeLimit: 30,
+},
+{
+    id: '21',
+    type: 'connection',
+    text: "Find the 4 related words",
+    items: ["Heathrow", "Stansted", "City", "Southend", "Manchester", "Bristol", "Glasgow", "Dublin"],
+    correctItems: ["Heathrow", "Stansted", "City", "Southend"],
+    connectionHint: "The other airports serving the London area",
+    timeLimit: 30,
+},
+{
+    id: '22',
+    type: 'connection',
+    text: "Find the 4 related words",
+    items: ["Altimeter", "Throttle", "Compass", "Airspeed", "Yoke", "Pedals", "Radar", "Radio"],
+    correctItems: ["Altimeter", "Compass", "Airspeed", "Radar"],
+    connectionHint: "Primary flight instruments (The 'Six Pack' basics)",
+    timeLimit: 35
+}
 ];
