@@ -104,49 +104,22 @@ export const questions: Question[] = [
   },
   {
     id: '12',
-    type: 'wordsearch',
-    text: "Find customs and immigration words",
-    grid: [
-      ['V', 'I', 'S', 'A', 'S'],
-      ['P', 'A', 'S', 'S', 'P'],
-      ['D', 'U', 'T', 'Y', 'F'],
-      ['F', 'O', 'R', 'M', 'S'],
-      ['L', 'I', 'N', 'E', 'S'],
-    ],
-    validWords: ["VISAS", "PASS", "DUTY", "FORMS", "LINES"],
-    timeLimit: 40
-},
+    type: 'multiple-choice',
+    text: "On which airline might you see this uniform?",
+    options: ["Atlantic Airways", "British Airways", "Icelandair", "Qatar Airways"],
+    correct_answer: "British Airways",
+    timeLimit: 10
+  },
 {
     id: '13',
-    type: 'wordsearch',
-    text: "Find items for a long flight",
-    grid: [
-      ['S', 'L', 'E', 'E', 'P', 'X'],
-      ['P', 'I', 'L', 'L', 'O', 'W'],
-      ['M', 'U', 'S', 'I', 'C', 'Q'],
-      ['B', 'L', 'A', 'N', 'K', 'S'],
-      ['M', 'O', 'V', 'I', 'E', 'S'],
-      ['G', 'A', 'M', 'E', 'S', 'Z'],
-    ],
-    validWords: ["SLEEP", "PILLOW", "MUSIC", "BLANK", "MOVIES", "GAMES"],
-    timeLimit: 50
+    type: 'multiple-choice',
+    text: "Where at London Gatwick could you try the cult hit Green Burger?",
+    options: ["The Red Lion (J.D. Wetherspoon)", "Shake Shack", "Emirates Lounge", "Krispy Kreme"],
+    correct_answer: "Emirates Lounge",
+    timeLimit: 12,
 },
 {
     id: '14',
-    type: 'wordsearch',
-    text: "Find airport terminal perks",
-    grid: [
-      ['L', 'O', 'U', 'N', 'G'],
-      ['C', 'A', 'F', 'E', 'E'],
-      ['F', 'R', 'E', 'E', 'W'],
-      ['B', 'A', 'T', 'H', 'S'],
-      ['F', 'O', 'O', 'D', 'S'],
-    ],
-    validWords: ["LOUNG", "CAFE", "FREE", "BATH", "FOODS"],
-    timeLimit: 35
-},
-{
-    id: '15',
     type: 'ordering',
     text: "Order the departure process (first to last)",
     items: ["Security", "Check-in", "Boarding", "Take-off"],
@@ -154,7 +127,7 @@ export const questions: Question[] = [
     timeLimit: 20,
 },
 {
-    id: '16',
+    id: '15',
     type: 'ordering',
     text: "Order these by typical altitude (lowest to highest)",
     items: ["Cruising Altitude", "Helicopter", "Drone", "Clouds"],
@@ -162,7 +135,7 @@ export const questions: Question[] = [
     timeLimit: 25,
 },
 {
-    id: '17',
+    id: '16',
     type: 'ordering',
     text: "Order these plane parts from nose to tail",
     items: ["Wing", "Cockpit", "Galley", "Vertical Stabilizer"],
@@ -170,7 +143,7 @@ export const questions: Question[] = [
     timeLimit: 20,
 },
 {
-    id: '18',
+    id: '17',
     type: 'ordering',
     text: "Order these by top speed (slowest to fastest)",
     items: ["Baggage Tug", "Cessna", "Boeing 747", "Concorde"],
@@ -178,7 +151,7 @@ export const questions: Question[] = [
     timeLimit: 25
 },
 {
-    id: '19',
+    id: '18',
     type: 'connection',
     text: "Find the 4 related words",
     items: ["Gates", "Arrivals", "Taxi", "Lounge", "Restrooms", "Baggage", "Hotel", "Train"],
@@ -187,7 +160,7 @@ export const questions: Question[] = [
     timeLimit: 30,
 },
 {
-    id: '20',
+    id: '19',
     type: 'connection',
     text: "Find the 4 related words",
     items: ["Perfume", "Water", "Lotion", "Shampoo", "Toothpaste", "Juice", "Honey", "Laptop"],
@@ -196,7 +169,7 @@ export const questions: Question[] = [
     timeLimit: 30,
 },
 {
-    id: '21',
+    id: '20',
     type: 'connection',
     text: "Find the 4 related words",
     items: ["Heathrow", "Stansted", "City", "Southend", "Manchester", "Bristol", "Glasgow", "Dublin"],
@@ -205,7 +178,7 @@ export const questions: Question[] = [
     timeLimit: 30,
 },
 {
-    id: '22',
+    id: '21',
     type: 'connection',
     text: "Find the 4 related words",
     items: ["Altimeter", "Throttle", "Compass", "Airspeed", "Yoke", "Pedals", "Radar", "Radio"],
