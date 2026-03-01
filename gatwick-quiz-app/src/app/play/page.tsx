@@ -1,11 +1,10 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image'; 
-import { Award, Timer,Trophy, Medal, User  } from 'lucide-react';
+import { Award, Timer, Trophy, Medal, User } from 'lucide-react';
 import { questions } from '@/lib/mockQuestions';
 import { saveScore, getLeaderboard } from '@/lib/supabase';
 import QuestionRenderer from '@/components/QuestionRenderer';
-import { Question } from '@/types/questions';
 
 export default function PlayPage() {
   const [score, setScore] = useState(0);
@@ -21,95 +20,35 @@ export default function PlayPage() {
   const [hasStarted, setHasStarted] = useState(false);
   const [hasAnswered, setHasAnswered] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [showCorrectAnswer, setShowCorrectAnswer] = useState(false); // NEW: separate state for revealing correct answer
+  const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
   const [pendingPoints, setPendingPoints] = useState(0);
   const [finalScore, setFinalScore] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false); // NEW: Prevent double transitions
 
   const currentQuestion = questions[currentQuestionIndex];
 
-  // Set time limit based on question type
-  useEffect(() => {
-    if (currentQuestion) {
-      setTimeLeft(currentQuestion.timeLimit);
-    }
-  }, [currentQuestionIndex, currentQuestion]);
+  // Move to next question - memoized to prevent stale closures
+  const moveToNextQuestion = useCallback(async (pointsToAdd: number) => {
+    if (isTransitioning) return; // Prevent double calls
+    setIsTransitioning(true);
 
-  // Handle the timer countdown
-  useEffect(() => {
-    if (isTimerRunning && timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
-      return () => clearTimeout(timer);
-    }
+    const newScore = score + pointsToAdd;
+    setScore(newScore);
 
-    if (timeLeft === 0 && isTimerRunning) {
-      handleTimeOut();
-    }
-  }, [timeLeft, isTimerRunning]);
-
-  const handleTimeOut = () => {
-    setIsTimerRunning(false);
-
-    if (!hasAnswered && currentQuestion.type === 'multiple-choice') {
-      // User didn't answer in time
-      setSelectedAnswer(null);
-      setIsCorrect(false);
-      setPendingPoints(0);
-    }
-
-    // NOW reveal the correct answer
-    setShowFeedback(true);
-    setShowCorrectAnswer(true);
-
-    // Move to next question after showing correct answer
-    setTimeout(() => {
-      setScore((s) => s + pendingPoints);
-      moveToNextQuestion();
-    }, 2000);
-  };
-
-  // For multiple-choice questions
-  const handleAnswer = (option: string) => {
-    if (hasAnswered || !isTimerRunning || currentQuestion.type !== 'multiple-choice') return;
-
-    setHasAnswered(true);
-    setSelectedAnswer(option);
-
-    const correct = option === currentQuestion.correct_answer;
-    setIsCorrect(correct);
-
-    if (correct) {
-      const points = 100 + timeLeft * 5;
-      setPendingPoints(points);
-    } else {
-      setPendingPoints(0);
-    }
-
-    // Show that user has selected, but DON'T reveal correct answer yet
-    // Timer continues running - correct answer revealed when timer hits 0
-  };
-
-  // For complex question types (connection, ordering, wordsearch)
-  const handleQuestionComplete = (correct: boolean, points: number) => {
-    setHasAnswered(true);
-    setIsCorrect(correct);
-    setPendingPoints(points);
-    // Timer continues running - feedback shown when timer hits 0
-  };
-
-  const moveToNextQuestion = async () => {
-    const newScore = score + pendingPoints;
-
+    // Reset state for next question
     setSelectedAnswer(null);
     setIsCorrect(null);
     setHasAnswered(false);
     setShowFeedback(false);
-    setShowCorrectAnswer(false); // Reset correct answer visibility
+    setShowCorrectAnswer(false);
     setPendingPoints(0);
 
     if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex((i) => i + 1);
-      setTimeLeft(questions[currentQuestionIndex + 1].timeLimit);
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
+      setTimeLeft(questions[nextIndex].timeLimit);
       setIsTimerRunning(true);
+      setIsTransitioning(false);
     } else {
       // Quiz complete
       setFinalScore(newScore);
@@ -123,7 +62,94 @@ export default function PlayPage() {
       } catch (error) {
         console.error('Error saving score:', error);
       }
+      setIsTransitioning(false);
     }
+  }, [currentQuestionIndex, score, username, isTransitioning]);
+
+  // Set time limit based on question type
+  useEffect(() => {
+    if (currentQuestion && hasStarted && !isQuizComplete) {
+      setTimeLeft(currentQuestion.timeLimit);
+    }
+  }, [currentQuestionIndex, currentQuestion, hasStarted, isQuizComplete]);
+
+  // Handle timeout - memoized
+  const handleTimeOut = useCallback(() => {
+    if (isTransitioning) return;
+    
+    setIsTimerRunning(false);
+    setShowFeedback(true);
+    setShowCorrectAnswer(true);
+
+    // For multiple-choice that wasn't answered
+    if (!hasAnswered && currentQuestion.type === 'multiple-choice') {
+      setSelectedAnswer(null);
+      setIsCorrect(false);
+      setPendingPoints(0);
+    }
+
+    // Move to next question after showing feedback
+    setTimeout(() => {
+      moveToNextQuestion(pendingPoints);
+    }, 2000);
+  }, [currentQuestion, hasAnswered, pendingPoints, moveToNextQuestion, isTransitioning]);
+
+  // Handle the timer countdown
+  useEffect(() => {
+    if (!isTimerRunning || timeLeft <= 0 || isTransitioning) return;
+
+    const timer = setTimeout(() => {
+      if (timeLeft === 1) {
+        // Timer just hit 0
+        handleTimeOut();
+      } else {
+        setTimeLeft((t) => t - 1);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [timeLeft, isTimerRunning, handleTimeOut, isTransitioning]);
+
+  // For multiple-choice questions
+  const handleAnswer = (option: string) => {
+    if (hasAnswered || !isTimerRunning || currentQuestion.type !== 'multiple-choice' || isTransitioning) return;
+
+    setHasAnswered(true);
+    setSelectedAnswer(option);
+
+    const correct = option === currentQuestion.correct_answer;
+    setIsCorrect(correct);
+
+    const points = correct ? 100 + timeLeft * 5 : 0;
+    setPendingPoints(points);
+
+    // Show selection feedback immediately
+    setShowFeedback(true);
+
+    // Timer continues - correct answer revealed at timeout
+    // But if we want immediate feedback, we can stop timer and move on:
+    setIsTimerRunning(false);
+    setShowCorrectAnswer(true);
+
+    setTimeout(() => {
+      moveToNextQuestion(points);
+    }, 2000);
+  };
+
+  // For complex question types (connection, ordering, wordsearch)
+  const handleQuestionComplete = (correct: boolean, points: number) => {
+    if (isTransitioning) return;
+
+    setHasAnswered(true);
+    setIsCorrect(correct);
+    setPendingPoints(points);
+    setIsTimerRunning(false); // Stop the timer
+    setShowFeedback(true);
+
+    // Move to next question after feedback
+    setTimeout(() => {
+      moveToNextQuestion(points);
+    }, 2000);
   };
 
   const handleUsernameSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -139,17 +165,21 @@ export default function PlayPage() {
   return (
     <main className="min-h-screen bg-gatwick-sky p-4 flex flex-col gap-4 max-w-md mx-auto font-sans">
       {/* Header Stat Bar */}
-      <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm">
-        <div className="flex items-center gap-2 text-black font-bold text-lg">
-          <Award className="w-6 h-6 text-gatwick-congress-blue" />
-          <span>{score} pts</span>
+      {hasStarted && (
+        <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm">
+          <div className="flex items-center gap-2 text-black font-bold text-lg">
+            <Award className="w-6 h-6 text-gatwick-congress-blue" />
+            <span>{score} pts</span>
+          </div>
+          <div className="flex items-center gap-4 text-black font-medium">
+            <span className="text-sm text-slate-500">Q{currentQuestionIndex + 1}/{questions.length}</span>
+            <div className="flex items-center gap-2">
+              <Timer className={`w-6 h-6 ${timeLeft <= 3 ? 'text-gatwick-orange animate-pulse' : 'text-gatwick-congress-blue'}`} />
+              <span className={`font-mono font-bold ${timeLeft <= 3 ? 'text-gatwick-orange' : ''}`}>{timeLeft}s</span>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2 text-black font-medium">
-          <span>{username}</span>
-          <Timer className="w-6 h-6 text-gatwick-congress-blue" />
-          <span>{timeLeft}s</span>
-        </div>
-      </div>
+      )}
 
       {/* Username Input with Logo */}
       {!hasStarted && (
@@ -204,8 +234,9 @@ export default function PlayPage() {
       )}
 
       {/* Quiz Content */}
-      {hasStarted && !isQuizComplete && (
+      {hasStarted && !isQuizComplete && currentQuestion && (
         <QuestionRenderer
+          key={currentQuestion.id}
           question={currentQuestion}
           onAnswer={handleAnswer}
           onComplete={handleQuestionComplete}
@@ -214,99 +245,95 @@ export default function PlayPage() {
           showCorrectAnswer={showCorrectAnswer}
           isCorrect={isCorrect}
           timeLeft={timeLeft}
-          disabled={hasAnswered}
+          disabled={hasAnswered || isTransitioning}
           pendingPoints={pendingPoints}
         />
       )}
 
       {/* Leaderboard */}
-{isQuizComplete && (
-  <div className="bg-white p-8 rounded-3xl shadow-xl flex-grow flex flex-col justify-center items-center text-center gap-6 border-2 border-white">
-    <h2 className="text-3xl font-black text-gatwick-congress-blue leading-tight tracking-tight uppercase font-mono">
-      🏆 Leaderboard
-    </h2>
-    <p className="text-lg text-gray-600">
-      Your score: <span className="font-bold text-gatwick-congress-blue">{finalScore} pts</span>
-    </p>
-    
-    <ul className="w-full space-y-2">
-      {leaderboard.map((entry, index) => {
-        const isCurrentUser = entry.username === username;
-        const position = index + 1;
-        
-        // Get position icon and styling
-        const getPositionIcon = () => {
-          switch (position) {
-            case 1:
-              return <Trophy className="w-6 h-6 text-yellow-500" strokeWidth={2.5} />;
-            case 2:
-              return <Medal className="w-6 h-6 text-gray-400" strokeWidth={2.5} />;
-            case 3:
-              return <Medal className="w-6 h-6 text-amber-600" strokeWidth={2.5} />;
-            default:
-              return <span className="w-6 h-6 flex items-center justify-center text-sm font-bold text-slate-400">{position}</span>;
-          }
-        };
+      {isQuizComplete && (
+        <div className="bg-white p-8 rounded-3xl shadow-xl flex-grow flex flex-col justify-center items-center text-center gap-6 border-2 border-white">
+          <h2 className="text-3xl font-black text-gatwick-congress-blue leading-tight tracking-tight uppercase font-mono">
+            🏆 Leaderboard
+          </h2>
+          <p className="text-lg text-gray-600">
+            Your score: <span className="font-bold text-gatwick-congress-blue">{finalScore} pts</span>
+          </p>
+          
+          <ul className="w-full space-y-2">
+            {leaderboard.map((entry, index) => {
+              const isCurrentUser = entry.username === username && entry.score === finalScore;
+              const position = index + 1;
+              
+              const getPositionIcon = () => {
+                switch (position) {
+                  case 1:
+                    return <Trophy className="w-6 h-6 text-yellow-500" strokeWidth={2.5} />;
+                  case 2:
+                    return <Medal className="w-6 h-6 text-gray-400" strokeWidth={2.5} />;
+                  case 3:
+                    return <Medal className="w-6 h-6 text-amber-600" strokeWidth={2.5} />;
+                  default:
+                    return <span className="w-6 h-6 flex items-center justify-center text-sm font-bold text-slate-400">{position}</span>;
+                }
+              };
 
-        return (
-          <li
-            key={`${entry.username}-${entry.created_at}`}
-            className={`
-              flex items-center justify-between p-4 rounded-xl transition-all
-              ${isCurrentUser 
-                ? 'bg-gatwick-congress-blue text-white shadow-lg scale-105 border-2 border-gatwick-teal' 
-                : 'bg-slate-50 text-gatwick-congress-blue border border-slate-100'
-              }
-            `}
+              return (
+                <li
+                  key={`${entry.username}-${entry.created_at}`}
+                  className={`
+                    flex items-center justify-between p-4 rounded-xl transition-all
+                    ${isCurrentUser 
+                      ? 'bg-gatwick-congress-blue text-white shadow-lg scale-105 border-2 border-gatwick-teal' 
+                      : 'bg-slate-50 text-gatwick-congress-blue border border-slate-100'
+                    }
+                  `}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`
+                      w-10 h-10 rounded-full flex items-center justify-center
+                      ${isCurrentUser ? 'bg-white/20' : 'bg-white'}
+                    `}>
+                      {getPositionIcon()}
+                    </div>
+                    <span className="font-bold text-lg">
+                      {entry.username}
+                      {isCurrentUser && (
+                        <span className="ml-2 text-xs bg-gatwick-teal px-2 py-0.5 rounded-full uppercase font-mono">
+                          You
+                        </span>
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-xl font-mono">{entry.score}</span>
+                    <span className={`text-sm ${isCurrentUser ? 'text-white/70' : 'text-slate-400'}`}>pts</span>
+                    {isCurrentUser && (
+                      <User className="w-5 h-5 ml-1 text-gatwick-teal" strokeWidth={2.5} />
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+
+          {!leaderboard.some(entry => entry.username === username && entry.score === finalScore) && (
+            <div className="w-full p-4 bg-gatwick-sky rounded-xl border-2 border-dashed border-gatwick-congress-blue/30">
+              <p className="text-sm text-gatwick-congress-blue font-medium">
+                Your score of <span className="font-bold">{finalScore} pts</span> You did not make the top 10. Keep trying!
+              </p>
+            </div>
+          )}
+
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full py-4 px-6 !bg-gatwick-congress-blue text-white font-black text-xl rounded-xl shadow-lg hover:!bg-gatwick-teal transition-all active:scale-95 uppercase font-mono"
           >
-            {/* Left: Position Icon + Name */}
-            <div className="flex items-center gap-3">
-              <div className={`
-                w-10 h-10 rounded-full flex items-center justify-center
-                ${isCurrentUser ? 'bg-white/20' : 'bg-white'}
-              `}>
-                {getPositionIcon()}
-              </div>
-              <span className="font-bold text-lg">
-                {entry.username}
-                {isCurrentUser && (
-                  <span className="ml-2 text-xs bg-gatwick-teal px-2 py-0.5 rounded-full uppercase font-mono">
-                    You
-                  </span>
-                )}
-              </span>
-            </div>
-
-            {/* Right: Score + User Indicator */}
-            <div className="flex items-center gap-2">
-              <span className="font-black text-xl font-mono">{entry.score}</span>
-              <span className={`text-sm ${isCurrentUser ? 'text-white/70' : 'text-slate-400'}`}>pts</span>
-              {isCurrentUser && (
-                <User className="w-5 h-5 ml-1 text-gatwick-teal" strokeWidth={2.5} />
-              )}
-            </div>
-          </li>
-        );
-      })}
-    </ul>
-
-    {/* Show user's position if not in top 10 */}
-    {!leaderboard.some(entry => entry.username === username) && (
-      <div className="w-full p-4 bg-gatwick-sky rounded-xl border-2 border-dashed border-gatwick-congress-blue/30">
-        <p className="text-sm text-gatwick-congress-blue font-medium">
-          Your score of <span className="font-bold">{finalScore} pts</span> You did not make the top 10. Keep trying!
-        </p>
-      </div>
-    )}
-
-    <button
-      onClick={() => window.location.reload()}
-      className="w-full py-4 px-6 !bg-gatwick-congress-blue text-white font-black text-xl rounded-xl shadow-lg hover:!bg-gatwick-teal transition-all active:scale-95 uppercase font-mono"
-    >
-      Play Again
-    </button>
-  </div>
-)}
-   </main>
+            Play Again
+          </button>
+        </div>
+      )}
+    </main>
   );
 }
