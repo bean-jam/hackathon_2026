@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import Image from 'next/image'; // Add this import
+import Image from 'next/image'; 
 import { Award, Timer,Trophy, Medal, User  } from 'lucide-react';
 import { questions } from '@/lib/mockQuestions';
 import { saveScore, getLeaderboard } from '@/lib/supabase';
@@ -157,7 +157,7 @@ export default function PlayPage() {
           {/* Logo */}
           <div className="flex flex-col items-center gap-4">
             <Image
-              src="/logo.png"
+              src="/gatwick.gif"
               alt="Airhead Logo"
               width={200}
               height={200}
@@ -168,7 +168,7 @@ export default function PlayPage() {
               Airhead
             </h1>
             <p className="text-slate-500 text-center text-sm">
-              Test your airport knowledge!
+              Test Your London Gatwick Knowledge!
             </p>
           </div>
 
@@ -294,7 +294,7 @@ export default function PlayPage() {
     {!leaderboard.some(entry => entry.username === username) && (
       <div className="w-full p-4 bg-gatwick-sky rounded-xl border-2 border-dashed border-gatwick-congress-blue/30">
         <p className="text-sm text-gatwick-congress-blue font-medium">
-          Your score of <span className="font-bold">{finalScore} pts</span> didn't make the top 10. Keep trying!
+          Your score of <span className="font-bold">{finalScore} pts</span> You did not make the top 10. Keep trying!
         </p>
       </div>
     )}
