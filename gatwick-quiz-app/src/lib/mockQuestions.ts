@@ -191,7 +191,7 @@ export const questions: Question[] = [
     text: "Find the 4 related words",
     items: ["Altimeter", "Clutch", "Compass", "Airspeed", "Laptop", "Pedals", "Radar", "Windows"],
     correctItems: ["Altimeter", "Compass", "Airspeed", "Radar"],
-    connectionHint: "Primary flight instruments",
+    connectionHint: "The primary flight instruments",
     timeLimit: 25
   },
   {
