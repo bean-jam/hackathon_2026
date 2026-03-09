@@ -25,7 +25,7 @@
     @apply bg-background text-foreground antialiased;
   }
 
-  /* 1. This makes EVERY button in your app Congress Blue by default */
+  /* 1. This makes EVERY button in your app Congress Blue by defaul */
   button {
     @apply bg-gatwick-congress-blue text-white font-bold py-3 px-6 rounded-xl transition-all active:scale-95 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50;
   }
